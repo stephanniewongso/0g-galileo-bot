@@ -1,12 +1,13 @@
 # 0g bot recode from Dân Cày Airdrop (https://t.me/dancayairdrop)
-# Auto claim faucet USDT, ETH, BTC 
 
-# - Run with 10 cycles (you can edit on line 1097)
-# - Auto add liq USDT, ETH, BTC 
-# - Auto swap USDT - ETH daily
-# - Auto swap ETH - BTC daily
-# - Auto swap BTC - USDT daily
-# - Multi Accounts
+
+### - Auto claim faucet USDT, ETH, BTC 
+### - Run with 10 cycles (you can edit on line 1097)
+### - Auto add liq USDT, ETH, BTC 
+### - Auto swap USDT - ETH daily
+### - Auto swap ETH - BTC daily
+### - Auto swap BTC - USDT daily
+### - Multi Accounts
 
 
 
