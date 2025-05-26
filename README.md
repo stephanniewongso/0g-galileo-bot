@@ -11,20 +11,20 @@
 
 
 
-### - Clone repo
+# - Clone repo
 ```bash
 git clone https://github.com/stephanniewongso/0g-mint.git && cd 0g-mint
 ```
-### Install depedensy
+# - Install depedensy
 ```bash
 npm install
 ```
-### - Input your privatekey
+# - Input your privatekey
 ```bash
 0xprivatekey1
 0xprivatekey2
 ```
-### - Running bot
+# - Running bot
 ```bash
 node index.js
 ```
