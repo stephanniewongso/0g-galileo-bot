@@ -1,0 +1,28 @@
+{
+    "name": "0g-swap",
+    "version": "1.1.0",
+    "description": "Da dung thì dung so, da so thi dung dung",
+    "main": "dancay.js",
+    "scripts": {
+        "start": "node dancay.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "blockchain",
+        "web3",
+        "farming",
+        "0g"
+    ],
+    "author": "CaoBang",
+    "license": "ISC",
+    "dependencies": {
+        "colors": "^1.4.0",
+        "fs": "0.0.1-security",
+        "p-limit": "^2.3.0",
+        "piscina": "^5.0.0-alpha.0",
+        "web3": "^4.1.1"
+    },
+    "engines": {
+        "node": ">=16.0.0"
+    }
+}
