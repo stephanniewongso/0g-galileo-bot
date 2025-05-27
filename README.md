@@ -13,7 +13,7 @@
 
 # - Clone repo
 ```bash
-git clone https://github.com/stephanniewongso/0g-mint.git && cd 0g-mint
+git clone https://github.com/stephanniewongso/0g-galileo-bot.git && cd 0g-galileo-bot
 ```
 # - Install depedensy
 ```bash
