@@ -24,6 +24,10 @@ npm install
 0xprivatekey1
 0xprivatekey2
 ```
+# - Proxy format
+```bash
+protocol://user:pass@ip:port
+```
 # - Run
 ```bash
 node index.js
