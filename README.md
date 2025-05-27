@@ -1,34 +1,34 @@
-# 0g bot recode from Dân Cày Airdrop (https://t.me/dancayairdrop)
+### 0g bot recode from Dân Cày Airdrop (https://t.me/dancayairdrop)
 
 
-### - Auto claim faucet USDT, ETH, BTC 
-### - Run with 10 cycles (you can edit on line 1097)
-### - Auto add liq USDT, ETH, BTC 
-### - Auto swap USDT - ETH daily
-### - Auto swap ETH - BTC daily
-### - Auto swap BTC - USDT daily
-### - Multi Accounts
+- Auto claim faucet USDT, ETH, BTC 
+- Run with 10 cycles (you can edit on line 1097)
+- Auto add liq USDT, ETH, BTC 
+- Auto swap USDT - ETH daily
+- Auto swap ETH - BTC daily
+- Auto swap BTC - USDT daily
+- Multi Accounts
 
 
 
-# - Clone repo
+- Clone repo
 ```bash
 git clone https://github.com/stephanniewongso/0g-galileo-bot.git && cd 0g-galileo-bot
 ```
-# - Install dependency
+- Install dependencies
 ```bash
 npm install
 ```
-# - Your privatekey
+- Your privatekey
 ```bash
 0xprivatekey1
 0xprivatekey2
 ```
-# - Proxy format
+- Proxy format
 ```bash
 protocol://user:pass@ip:port
 ```
-# - Run
+- Run
 ```bash
 node index.js
 ```
