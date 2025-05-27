@@ -15,16 +15,16 @@
 ```bash
 git clone https://github.com/stephanniewongso/0g-galileo-bot.git && cd 0g-galileo-bot
 ```
-# - Install depedensy
+# - Install dependency
 ```bash
 npm install
 ```
-# - Input your privatekey
+# - Your privatekey
 ```bash
 0xprivatekey1
 0xprivatekey2
 ```
-# - Running bot
+# - Run
 ```bash
 node index.js
 ```
