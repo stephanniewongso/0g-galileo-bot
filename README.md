@@ -1,4 +1,5 @@
-## 0g galileo bot recode from Dân Cày Airdrop (https://t.me/dancayairdrop)
+## 0g galileo bot 
+## Recoded by me from Dân Cày Airdrop (https://t.me/dancayairdrop)
 
 
 - Auto claim faucet USDT, ETH, BTC 
