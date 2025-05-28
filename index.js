@@ -1,6 +1,7 @@
 const { Web3 } = require('web3');
 const fs = require('fs');
 const colors = require('colors');
+const { HttpProxyAgent } = require('http-proxy-agent');
 
 const rpcUrl = 'https://evmrpc-testnet.0g.ai';
 const chainId = 16601;
@@ -200,6 +201,16 @@ function log(msg, type = 'info') {
   }
 }
 
+function readProxies() {
+  try {
+    const data = fs.readFileSync('proxies.txt', 'utf8');
+    return data.replace(/\r\n/g, '\n').split('\n').filter(p => p.trim() !== '');
+  } catch (err) {
+    log(`Error reading proxies.txt: ${err.message}`, 'error');
+    return [];
+  }
+}
+
 function readPrivateKeys() {
   try {
     const data = fs.readFileSync('privatekey.txt', 'utf8');
@@ -211,7 +222,7 @@ function readPrivateKeys() {
   }
 }
 
-async function approveToken(tokenAddress, amount, account, privateKey, spender) {
+async function approveToken(tokenAddress, amount, account, privateKey, spender, web3) {
   const maxRetries = 3;
   const receiptCheckRetries = 20;
   const receiptCheckDelay = 20000;
@@ -306,14 +317,14 @@ async function approveToken(tokenAddress, amount, account, privateKey, spender) 
   }
 }
 
-async function getExistingPools(tokenA, tokenB) {
+async function getExistingPools(tokenA, tokenB, web3) {
   try {
     const factoryContract = new web3.eth.Contract(FACTORY_ABI, FACTORY_ADDRESS);
     
     const token0 = tokenA < tokenB ? tokenA : tokenB;
     const token1 = tokenA < tokenB ? tokenB : tokenA;
     
-    const feeTiers = [500, 3000, 10000];
+    const feeTiers = [500, 3000, 20000];
     const existingPools = [];
     
     for (const fee of feeTiers) {
@@ -346,14 +357,14 @@ async function getExistingPools(tokenA, tokenB) {
   }
 }
 
-async function swapTokens(tokenIn, tokenOut, amountIn, account, privateKey) {
+async function swapTokens(tokenIn, tokenOut, amountIn, account, privateKey, web3) {
   const routerContract = new web3.eth.Contract(ROUTER_ABI, SWAP_ROUTER_ADDRESS);
   const maxRetries = 30;
   const retryDelay = 20000;
   const receiptCheckRetries = 10;
   const receiptCheckDelay = 20000;
 
-  const pools = await getExistingPools(tokenIn, tokenOut);
+  const pools = await getExistingPools(tokenIn, tokenOut, web3);
   if (pools.length === 0) {
     log(`No pool found for pair ${getTokenName(tokenIn)}/${getTokenName(tokenOut)}`, "warning");
     throw new Error(`No active pools found for ${getTokenName(tokenIn)}/${getTokenName(tokenOut)}`);
@@ -504,7 +515,7 @@ async function swapTokens(tokenIn, tokenOut, amountIn, account, privateKey) {
   }
 }
 
-async function mintFromContract(privateKey, contractInfo, contractTag) {
+async function mintFromContract(privateKey, contractInfo, contractTag, web3) {
   let account;
   
   try {
@@ -568,7 +579,7 @@ function roundToDecimal(amount, decimals = 18) {
   return web3.utils.toWei(rounded, "ether");
 }
 
-async function addLiquidityEthBtc(account, privateKey) {
+async function addLiquidityEthBtc(account, privateKey, web3) {
   const maxRetries = 30;
   const retryDelay = 20000;
   
@@ -592,9 +603,9 @@ async function addLiquidityEthBtc(account, privateKey) {
       }
 
       log(`Approve ${web3.utils.fromWei(ethAmount, 'ether')} ${getTokenName(contracts.Ethereum.address)} for Position Manager...`, 'info');
-      await approveToken(contracts.Ethereum.address, ethAmount, account, privateKey, POSITION_MANAGER_ADDRESS);
+      await approveToken(contracts.Ethereum.address, ethAmount, account, privateKey, POSITION_MANAGER_ADDRESS, web3);
       log(`Approve ${web3.utils.fromWei(btcAmount, 'ether')} ${getTokenName(contracts.Bitcoin.address)} for Position Manager...`, 'info');
-      await approveToken(contracts.Bitcoin.address, btcAmount, account, privateKey, POSITION_MANAGER_ADDRESS);
+      await approveToken(contracts.Bitcoin.address, btcAmount, account, privateKey, POSITION_MANAGER_ADDRESS, web3);
 
       const token0 = contracts.Ethereum.address < contracts.Bitcoin.address ? contracts.Ethereum.address : contracts.Bitcoin.address;
       const token1 = contracts.Ethereum.address < contracts.Bitcoin.address ? contracts.Bitcoin.address : contracts.Ethereum.address;
@@ -747,7 +758,7 @@ async function addLiquidityEthBtc(account, privateKey) {
   return true;
 }
 
-async function addLiquidity(account, privateKey, tokenA, tokenB) {
+async function addLiquidity(account, privateKey, tokenA, tokenB, web3) {
   const maxRetries = 30;
   const retryDelay = 20000;
   
@@ -771,9 +782,9 @@ async function addLiquidity(account, privateKey, tokenA, tokenB) {
       }
 
       log(`Approve ${web3.utils.fromWei(tokenAAmount.toString(), 'ether')} ${getTokenName(tokenA)} for Position Manager...`, 'info');
-      await approveToken(tokenA, tokenAAmount, account, privateKey, POSITION_MANAGER_ADDRESS);
+      await approveToken(tokenA, tokenAAmount, account, privateKey, POSITION_MANAGER_ADDRESS, web3);
       log(`Approve ${web3.utils.fromWei(tokenBAmount.toString(), 'ether')} ${getTokenName(tokenB)} for Position Manager...`, 'info');
-      await approveToken(tokenB, tokenBAmount, account, privateKey, POSITION_MANAGER_ADDRESS);
+      await approveToken(tokenB, tokenBAmount, account, privateKey, POSITION_MANAGER_ADDRESS, web3);
 
       const token0 = tokenA < tokenB ? tokenA : tokenB;
       const token1 = tokenA < tokenB ? tokenB : tokenA;
@@ -926,19 +937,19 @@ async function addLiquidity(account, privateKey, tokenA, tokenB) {
   return false;
 }
 
-async function addLiquidityAllPairs(account, privateKey) {
+async function addLiquidityAllPairs(account, privateKey, web3) {
   log(`Start adding liquidity for all token pairs...`, 'custom');
   
-  await addLiquidity(account, privateKey, contracts.Ethereum.address, contracts.Bitcoin.address);
+  await addLiquidity(account, privateKey, contracts.Ethereum.address, contracts.Bitcoin.address, web3);
   
-  await addLiquidity(account, privateKey, contracts.Ethereum.address, contracts.Tether.address);
+  await addLiquidity(account, privateKey, contracts.Ethereum.address, contracts.Tether.address, web3);
   
-  await addLiquidity(account, privateKey, contracts.Bitcoin.address, contracts.Tether.address);
+  await addLiquidity(account, privateKey, contracts.Bitcoin.address, contracts.Tether.address, web3);
   
   log(`Finished adding liquidity for all token pairs`, 'success');
 }
 
-async function checkAndSwapTokens(privateKey) {
+async function checkAndSwapTokens(privateKey, web3) {
   let account;
 
   try {
@@ -965,21 +976,21 @@ async function checkAndSwapTokens(privateKey) {
 
     if (BigInt(usdtBalance) < BigInt(usdtThreshold)) {
       log(`USDT balance low, minting...`, 'info');
-      await mintFromContract(privateKey, contracts.Tether, 'Tether');
+      await mintFromContract(privateKey, contracts.Tether, 'Tether', web3);
       usdtBalance = await usdtContract.methods.balanceOf(account.address).call();
       log(`USDT balance after minting: ${web3.utils.fromWei(usdtBalance, "ether")}`, 'info');
     }
 
     if (BigInt(ethBalance) < BigInt(ethThreshold)) {
       log(`Low ETH balance, minting...`, 'info');
-      await mintFromContract(privateKey, contracts.Ethereum, 'Ethereum');
+      await mintFromContract(privateKey, contracts.Ethereum, 'Ethereum', web3);
       ethBalance = await ethContract.methods.balanceOf(account.address).call(); 
       log(`ETH balance after minting: ${web3.utils.fromWei(ethBalance, "ether")}`, 'info');
     }
 
     if (BigInt(btcBalance) < BigInt(btcThreshold)) {
       log(`Low BTC balance, minting...`, 'info');
-      await mintFromContract(privateKey, contracts.Bitcoin, 'Bitcoin');
+      await mintFromContract(privateKey, contracts.Bitcoin, 'Bitcoin', web3);
       btcBalance = await btcContract.methods.balanceOf(account.address).call();
       log(`BTC balance after minting: ${web3.utils.fromWei(btcBalance, "ether")}`, 'info');
     }
@@ -994,7 +1005,7 @@ async function checkAndSwapTokens(privateKey) {
     }
 
 
-    await addLiquidityAllPairs(account, privateKey);
+    await addLiquidityAllPairs(account, privateKey, web3);
     const minSwapAmount = web3.utils.toWei("0.005", "ether");
     const swapOperations = [];
 
@@ -1069,8 +1080,8 @@ async function checkAndSwapTokens(privateKey) {
     for (const op of swapOperations) {
       try {
         log(`${op.description}...`, "custom");
-        await approveToken(op.tokenIn, op.amount, account, privateKey, SWAP_ROUTER_ADDRESS);
-        await swapTokens(op.tokenIn, op.tokenOut, op.amount, account, privateKey);
+        await approveToken(op.tokenIn, op.amount, account, privateKey, SWAP_ROUTER_ADDRESS, web3);
+        await swapTokens(op.tokenIn, op.tokenOut, op.amount, account, privateKey, web3);
       } catch (error) {
         log(`Unable to execute ${op.description}: ${error.message}`, "error");
       }
@@ -1085,12 +1096,20 @@ async function checkAndSwapTokens(privateKey) {
 
 async function mainLoop() {
   const privateKeys = readPrivateKeys();
+  const proxies = readProxies();
 
   if (privateKeys.length === 0) {
     log('Privatekey not found in privatekey.txt', 'error');
     return;
   }
 
+  if (proxies.length > privateKeys.length) {
+    log(`⚠️ More proxies (${proxies.length}) than private keys (${privateKeys.length}). Extra proxies will be ignored.`, 'warning');
+  } else if (proxies.length < privateKeys.length) {
+    log(`⚠️ Fewer proxies (${proxies.length}) than private keys (${privateKeys.length}). Some wallets will reuse the last proxy.`, 'warning');
+  }
+
+  
   log(`Wallets found`);
   log('====== Dân cày airdrop - If you’re afraid, don’t use it; if you use it, don’t be afraid ======', 'custom');
 
@@ -1100,24 +1119,31 @@ async function mainLoop() {
     const runStart = new Date();
     log(`Starting at ${runStart.toLocaleString()}`, 'custom');
 
-    for (const privateKey of privateKeys) {
+    for (let i = 0; i < privateKeys.length; i++) {
+      const privateKey = privateKeys[i];
+      const proxy = proxies[i] || proxies[proxies.length - 1];
+
+      const { HttpProxyAgent } = require('http-proxy-agent');
+	  const agent = new HttpProxyAgent(proxy);
+      const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl, { agent }));
+
       const account = web3.eth.accounts.privateKeyToAccount(privateKey);
-      log(`Minting tokens for wallet ${account.address} ---`, 'custom');
+	  log(`Using proxy: ${proxy}`, 'info');
+      log(`Minting tokens for wallet ${account.address}`, 'custom');
 
       for (const [tag, tokenInfo] of Object.entries(contracts)) {
-        await mintFromContract(privateKey, tokenInfo, tag);
+        await mintFromContract(privateKey, tokenInfo, tag, web3);
         await new Promise(resolve => setTimeout(resolve, 20000));
       }
 
       for (let cycle = 1; cycle <= cycles; cycle++) {
         log(`Cycle ${cycle}/${cycles} - Swapping for wallet ${account.address}`, 'custom');
-        await checkAndSwapTokens(privateKey);
+        await checkAndSwapTokens(privateKey, web3);
         await new Promise(resolve => setTimeout(resolve, 20000));
       }
     }
 
     log(`✅ All wallets processed. Waiting 24 hours to restart...`, 'custom');
-
     await new Promise(resolve => setTimeout(resolve, 24 * 60 * 60 * 1000));
   }
 }
