@@ -12,24 +12,24 @@
 
 
 
-- Clone repo
+### Clone repo
 ```bash
 git clone https://github.com/stephanniewongso/0g-galileo-bot.git && cd 0g-galileo-bot
 ```
-- Install dependencies
+### Install dependencies
 ```bash
 npm install
 ```
-- Your privatekey
+### Your privatekey
 ```bash
 0xprivatekey1
 0xprivatekey2
 ```
-- Proxy format
+### Proxy format
 ```bash
 protocol://user:pass@ip:port
 ```
-- Run
+### Run
 ```bash
 node index.js
 ```
